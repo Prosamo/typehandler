@@ -20,7 +20,7 @@ import typehandler
 
 # Processクラスのインスタンスを作成
 game_process = typehandler.Process()
-
+```
 
 #### 1. 新しい文章の設定
 
