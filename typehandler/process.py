@@ -203,15 +203,94 @@ class Process:
                ふぉ=['fo','fwo','hulo', 'huxo', 'fulo', 'fuxo'],
                ー=['-']
     )
+    __SYMBOL = {
+        '1': ['1'], '2': ['2'], '3': ['3'], '4': ['4'], '5': ['5'], '6': ['6'], '7': ['7'], '8': ['8'], '9': ['9'], '0': ['0'],
+        'a': ['a'], 'b': ['b'], 'c': ['c'], 'd': ['d'], 'e': ['e'], 'f': ['f'], 'g': ['g'], 'h': ['h'], 'i': ['i'], 'j': ['j'], 
+        'k': ['k'], 'l': ['l'], 'm': ['m'], 'n': ['n'], 'o': ['o'], 'p': ['p'], 'q': ['q'], 'r': ['r'], 's': ['s'], 't': ['t'], 
+        'u': ['u'], 'v': ['v'], 'w': ['w'], 'x': ['x'], 'y': ['y'], 'z': ['z'],
+        'A': ['A'], 'B': ['B'], 'C': ['C'], 'D': ['D'], 'E': ['E'], 'F': ['F'], 'G': ['G'], 'H': ['H'], 'I': ['I'], 'J': ['J'], 
+        'K': ['K'], 'L': ['L'], 'M': ['M'], 'N': ['N'], 'O': ['O'], 'P': ['P'], 'Q': ['Q'], 'R': ['R'], 'S': ['S'], 'T': ['T'], 
+        'U': ['U'], 'V': ['V'], 'W': ['W'], 'X': ['X'], 'Y': ['Y'], 'Z': ['Z'],
+        '!': ['!'], '"': ['"'], '#': ['#'], '$': ['$'], '%': ['%'], '&': ['&'], "'": ["'"], '(': ['('], ')': [')'], '*': ['*'], 
+        '+': ['+'], ',': [','], '-': ['-'], '.': ['.'], '/': ['/'], ':': [':'], ';': [';'], '<': ['<'], '=': ['='], '>': ['>'], 
+        '?': ['?'], '@': ['@'], '[': ['['], '\\': ['\\'], ']': [']'], '^': ['^'], '_': ['_'], '`': ['`'], '{': ['{'], '|': ['|'], 
+        '}': ['}'], '~': ['~'], ' ': [' ']
+    }
+    #ふりがなに使用可能なすべての文字
+    __LETTER = {**__HIRAGANA, **__SYMBOL}
 
     __EXCEPTION_NN = {'n', 'y', 'a', 'i', 'u', 'e', 'o'}
-    __EXCEPTION_LTU = {'n', 'a', 'i', 'u', 'e', 'o', '-'}    #記号追加するなら記号もここに
+    __EXCEPTION_SYMBOLS = {'!', '"', '#', '$', '%', '&', "'", '(', ')', '*', '+', ',', '-', '.', '/', 
+                     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ':', ';', '<', '=', '>', 
+                     '?', '@', '[', '\\', ']', '^', '_', '`', '{', '|', '}', '~', ' '}
+    __EXCEPTION_LTU = {'n', 'a', 'i', 'u', 'e', 'o'}.union(__EXCEPTION_SYMBOLS)
+    __KEY_NAMES = list(__SYMBOL.keys())
+    MISS, COLLECT, CHUNK_COMPLETE, SENTENCE_COMPLETE = 0, 1, 2, 3
+    #有効なキーの名前をリストで返す
+    @staticmethod
+    def show_key_names():
+        print(Process.__KEY_NAMES)
+    #有効なキーの名前に含まれているか判定
+    @staticmethod
+    def check_ignore(key: str) -> bool:
+        if key in Process.__KEY_NAMES:
+            return False
+        else:
+            return True
+    #シフトが押されているときの文字に変える
+    @staticmethod
+    def shift_filter(name: str) -> str:
+        if name == '1':
+            return '!'
+        elif name == '2':
+            return '"'
+        elif name == '3':
+            return '#'
+        elif name == '4':
+            return '$'
+        elif name == '5':
+            return '%'
+        elif name == '6':
+            return '&'
+        elif name == '7':
+            return "'"
+        elif name == '8':
+            return '('
+        elif name == '9':
+            return ')'
+        elif name in ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']:
+            return name.upper()
+        elif name == '^':
+            return '~'
+        elif name == '[':
+            return '{'
+        elif name == ']':
+            return '}'
+        elif name == '\\':
+            return '_'
+        elif name == '@':
+            return '`'
+        elif name == '-':
+            return '='
+        elif name == ';':
+            return '+'
+        elif name == ':':
+            return '*'
+        elif name == '/':
+            return '?'
+        elif name == ',':
+            return '<'
+        elif name == '.':
+            return '>'
+        else:
+            return name
+    #ふりがなの文字に無効なものが含まれているか判定
     @classmethod
     def __validate_input(cls, hurigana: str) -> None:
-        valid_chars = set(cls.__HIRAGANA.keys())
+        valid_chars = set(list(cls.__LETTER.keys()) + list(cls.__SYMBOL.keys()))
         for char in hurigana:
             if char not in valid_chars:
-                 raise ValueError(f"Invalid character found: {char} in input: {hurigana}")
+                 raise ValueError(f"Invalid character found: {char} in input: {hurigana}\nYou can use only the following characters: {list(Process.__LETTER.keys())}")
     
     #ユーザーが呼び出すためのほう（エラーハンドリング付き）
     @classmethod
@@ -222,7 +301,7 @@ class Process:
     #フリガナを受け取って、取りうるローマ字のパターンを生成する（文字ごとに入力パターンがあるので二次元リスト）
     @classmethod
     def __divide(cls, hurigana: str) ->List[str]:
-        hiragana_dict = cls.__HIRAGANA
+        letter_dict = cls.__LETTER
         divided_roman = []
         hurigana = hurigana
         chunk = None           #特定のひらがなをいくつかの文字で一つの塊とする
@@ -230,49 +309,49 @@ class Process:
         #文章を先頭からチャンクごとに区切って入力パターンを作る（「ん」と「っ」に関しては処理が違うので個別に扱う）
         while len(hurigana):
             if hurigana[0] == 'ん' and len(hurigana) != 1:    #文字が「ん」かつ最後じゃない時
-                pattern, hurigana = cls.__handle_nn(hurigana, hiragana_dict)
+                pattern, hurigana = cls.__handle_nn(hurigana, letter_dict)
             elif hurigana[0] == 'っ' and len(hurigana) != 1:    #文字が「っ」かつ最後じゃない時
-                pattern, hurigana = cls.__handle_ltu(hurigana, hiragana_dict)
+                pattern, hurigana = cls.__handle_ltu(hurigana, letter_dict)
             else:
-                pattern, hurigana = cls.__handle_pair(hurigana, hiragana_dict)
+                pattern, hurigana = cls.__handle_pair(hurigana, letter_dict)
             #特殊な処理がなかったら、1文字を１チャンクとして扱う
             if pattern is None:
                 chunk = hurigana[0]
-                pattern = hiragana_dict[chunk]
+                pattern = letter_dict[chunk]
                 hurigana = hurigana[1:]
             #チャンクごとの入力パターンをリストに追加していく       
             divided_roman.append(pattern)
         return divided_roman
     #文字が「ん」のときはnを二回入力しなければならないのか、１回でいいのかを調べ、「ん」を含む数文字を１チャンクとして入力パターンを作成
     @classmethod
-    def __handle_nn(cls, hurigana: str, hiragana_dict: Dict[str, str]) ->Tuple[List[str], str]:
-        pattern, hurigana = cls.__handle_special_letter(hurigana, hiragana_dict, cls.__EXCEPTION_NN, 'n')
+    def __handle_nn(cls, hurigana: str, letter_dict: Dict[str, str]) ->Tuple[List[str], str]:
+        pattern, hurigana = cls.__handle_special_letter(hurigana, letter_dict, cls.__EXCEPTION_NN, 'n')
         return pattern, hurigana
     #文字が「っ」のときは、後ろの文字の最初のローマ字を打つだけでいいのか調べ、「っ」を含む数文字を１チャンクとして入力パターンを作成
     @classmethod
-    def __handle_ltu(cls, hurigana: str, hiragana_dict: Dict[str, str]) ->Tuple[List[str], str]:
-        pattern, hurigana = cls.__handle_special_letter(hurigana, hiragana_dict, cls.__EXCEPTION_LTU)
+    def __handle_ltu(cls, hurigana: str, letter_dict: Dict[str, str]) ->Tuple[List[str], str]:
+        pattern, hurigana = cls.__handle_special_letter(hurigana, letter_dict, cls.__EXCEPTION_LTU)
         return pattern, hurigana
     #「ん」または「っ」に関しては、それらを含む数文字を１チャンクとして入力パターンを作成
     @staticmethod
-    def __handle_special_letter(hurigana: str, hiragana_dict: Dict[str, str], exception: Set[str], special_char: str = None) ->Tuple[List[str], str]:
+    def __handle_special_letter(hurigana: str, letter_dict: Dict[str, str], exception: Set[str], special_char: str = None) ->Tuple[List[str], str]:
         #後ろ2文字または1文字が辞書にあれば複数文字のチャンクとして扱う
-        chunk_length = 3 if hurigana[1:3] in hiragana_dict else 2
-        if hurigana[1:chunk_length] in hiragana_dict:
+        chunk_length = 3 if hurigana[1:3] in letter_dict else 2
+        if hurigana[1:chunk_length] in letter_dict:
             chunk = hurigana[0:chunk_length]
             hurigana = hurigana[chunk_length:]
         if special_char:
-            pattern = [special_char+i for i in hiragana_dict[chunk[1:]] if i[0] not in exception]
+            pattern = [special_char+i for i in letter_dict[chunk[1:]] if i[0] not in exception]
         else:
-            pattern = [i[0]+i for i in hiragana_dict[chunk[1:]] if i[0] not in exception]
-        pattern += [i+j for i in hiragana_dict[chunk[0]] for j in hiragana_dict[chunk[1:]]]
+            pattern = [i[0]+i for i in letter_dict[chunk[1:]] if i[0] not in exception]
+        pattern += [i+j for i in letter_dict[chunk[0]] for j in letter_dict[chunk[1:]]]
         return pattern, hurigana
     #例外処理のない文字
     @staticmethod
-    def __handle_pair(hurigana: str, hiragana_dict: Dict[str, str]) ->Tuple[List[str], str]:
+    def __handle_pair(hurigana: str, letter_dict: Dict[str, str]) ->Tuple[List[str], str]:
         #「しゃ」など２文字の塊で辞書に登録されているものは１チャンクとして扱う
         chunk = hurigana[0:2]
-        pattern = hiragana_dict.get(chunk)
+        pattern = letter_dict.get(chunk)
         if pattern:
             hurigana = hurigana[2:]
         return pattern, hurigana
@@ -312,10 +391,12 @@ class Process:
         for i in list(words.values()):
             self.__validate_input(i)
         self.words = words
-        set_new_sentence(words)
+        self.set_new_sentence(words)
 
     #正しい文字が入力されたか判定する
-    def check_correct_input(self, key: str) ->bool:
+    def check_correct_input(self, key: str, shift: bool = False) ->bool:
+        if shift:
+            key = Process.shift_filter(key)
         saved = [x for x in self.divided_roman[self.__current_chunk_num] if x[self.__input_count] == key]    #入力されたローマ字と一致する入力パターンのみを残す
         #入力が正しい時（入力パターンが残っているとき）
         if len(saved) != 0:
@@ -350,11 +431,18 @@ class Process:
         return self.show_roman
 
     #音声とか付けないなら、これだけ呼び出せば使える
-    def main(self, key: str) ->None:
-        correct_input = self.check_correct_input(key)    #ミスタイプを判定
+    def main(self, key: str, shift:bool = False) ->int:
+        correct_input = self.check_correct_input(key, shift)    #ミスタイプを判定
         if correct_input:
             chunk_completed = self.check_chunk_completion()    #文章の打ち終わりを判定
             if chunk_completed:
                 sentence_completed = self.check_sentence_completion()
                 if sentence_completed:
                     self.sentence, self.hurigana, self.divided_roman = self.__create_sentence()    #新しい文章を用意
+                    return Process.SENTENCE_COMPLETE
+                else:
+                    return Process.CHUNK_COMPLETE
+            else:
+                return Process.COLLECT
+        else:
+            return Process.MISS
