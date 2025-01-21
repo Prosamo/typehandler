@@ -226,6 +226,7 @@ class Process:
     __EXCEPTION_LTU = {'n', 'a', 'i', 'u', 'e', 'o'}.union(__EXCEPTION_SYMBOLS)
     __KEY_NAMES = list(__SYMBOL.keys())
     MISS, COLLECT, CHUNK_COMPLETE, SENTENCE_COMPLETE = 0, 1, 2, 3
+    
     #有効なキーの名前をリストで返す
     @staticmethod
     def show_key_names():
@@ -362,21 +363,25 @@ class Process:
         self.input = ''                 #入力済みのローマ字の文字列
         self.show_roman = ''            #画面に出力するローマ字
         self.words = words              #文章の一覧
+        self.next = None                #次の文章
         if words is None:
             self.sentence = self.hurigana = self.divided_roman = None
         else:
             for i in list(words.values()):
                 self.__validate_input(i)
-            self.sentence, self.hurigana, self.divided_roman = self.__create_sentence()    #文章、ふりがな、入力パターン
+            self.sentence, self.hurigana, self.divided_roman, self.next = self.__create_sentence()    #文章、ふりがな、入力パターン
 
     def __create_sentence(self, words: Dict[str, str] = None) ->Tuple[str, str, List[str]]:
         #引数で文章の辞書が渡されなかったら自分の辞書から
         if words is None:
             words = self.words
-        sentence = random.choice(list(words.keys()))    #辞書からランダムに文章を選ぶ
+        if self.next is None:
+            self.next = random.choice(list(words.keys()))    #辞書からランダムに文章を選ぶ
+        sentence = self.next
         hurigana = words[sentence]
         divided_roman = self.__divide(hurigana)
-        return sentence, hurigana, divided_roman
+        self.next = random.choice(list(words.keys()))    #辞書からランダムに文章を選ぶ
+        return sentence, hurigana, divided_roman, self.next
 
     #お題の文章、ひらがな、ローマ字を更新（辞書を渡せば、一回だけ別の辞書から参照するのにも使える）
     def set_new_sentence(self, words: Dict[str, str] = None) ->None:
@@ -384,7 +389,7 @@ class Process:
         self.__input_count = 0    
         self.__current_chunk_num = 0    
         self.input = '' 
-        self.sentence, self.hurigana, self.divided_roman = self.__create_sentence(words)
+        self.sentence, self.hurigana, self.divided_roman, self.next = self.__create_sentence(words)
         
     #別の辞書を設定したい時に使う
     def set_new_words(self, words: Dict[str, str]) ->None:
@@ -438,7 +443,7 @@ class Process:
             if chunk_completed:
                 sentence_completed = self.check_sentence_completion()
                 if sentence_completed:
-                    self.sentence, self.hurigana, self.divided_roman = self.__create_sentence()    #新しい文章を用意
+                    self.sentence, self.hurigana, self.divided_roman, self.next = self.__create_sentence()    #新しい文章を用意
                     return Process.SENTENCE_COMPLETE
                 else:
                     return Process.CHUNK_COMPLETE
