@@ -29,7 +29,6 @@ words = {
 # Processクラスのインスタンスを作成
 game_process = typehandler.Process(words)
 ```
-辞書を設定するためのメソッドもあるので、必ずしもインスタンス作成のタイミングで辞書を渡す必要はありません。
 
 #### 1. 新しい文章の設定
 
