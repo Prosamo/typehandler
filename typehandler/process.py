@@ -225,7 +225,15 @@ class Process:
                      '?', '@', '[', '\\', ']', '^', '_', '`', '{', '|', '}', '~', ' '}
     __EXCEPTION_LTU = {'n', 'a', 'i', 'u', 'e', 'o'}.union(__EXCEPTION_SYMBOLS)
     __KEY_NAMES = list(__SYMBOL.keys())
+    
+    #定数
     MISS, COLLECT, CHUNK_COMPLETE, SENTENCE_COMPLETE = 0, 1, 2, 3
+    
+    #シフト変換用の辞書
+    SHIFT = {'1': '!', '2': '"', '3': '#', '4': '$', '5': '%', '6': '&', '7': "'", '8': '(', '9': ')',
+             'a': 'A', 'b': 'B', 'c': 'C', 'd': 'D', 'e': 'E', 'f': 'F', 'g': 'G', 'h': 'H', 'i': 'I', 'j': 'J', 'k': 'K', 'l': 'L', 'm': 'M', 'n': 'N', 'o': 'O', 'p': 'P', 'q': 'Q', 'r': 'R', 's': 'S', 't': 'T', 'u': 'U', 'v': 'V', 'w': 'W', 'x': 'X', 'y': 'Y', 'z': 'Z',
+             '-': '=', '^': '~', '\\': '_', '@': '`', '[': '{', ']': '}', ';': '+', ':': '*', ',': '<', '.': '>', '/': '?'
+             }
     
     #有効なキーの名前をリストで返す
     @staticmethod
@@ -241,48 +249,8 @@ class Process:
     #シフトが押されているときの文字に変える
     @staticmethod
     def shift_filter(name: str) -> str:
-        if name == '1':
-            return '!'
-        elif name == '2':
-            return '"'
-        elif name == '3':
-            return '#'
-        elif name == '4':
-            return '$'
-        elif name == '5':
-            return '%'
-        elif name == '6':
-            return '&'
-        elif name == '7':
-            return "'"
-        elif name == '8':
-            return '('
-        elif name == '9':
-            return ')'
-        elif name in ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']:
-            return name.upper()
-        elif name == '^':
-            return '~'
-        elif name == '[':
-            return '{'
-        elif name == ']':
-            return '}'
-        elif name == '\\':
-            return '_'
-        elif name == '@':
-            return '`'
-        elif name == '-':
-            return '='
-        elif name == ';':
-            return '+'
-        elif name == ':':
-            return '*'
-        elif name == '/':
-            return '?'
-        elif name == ',':
-            return '<'
-        elif name == '.':
-            return '>'
+        if name in Process.SHIFT:
+            return Process.SHIFT[name]
         else:
             return name
     #ふりがなの文字に無効なものが含まれているか判定
@@ -357,19 +325,16 @@ class Process:
             hurigana = hurigana[2:]
         return pattern, hurigana
         
-    def __init__(self, words: Dict[str, str] = None) ->None:
+    def __init__(self, words: Dict[str, str]) ->None:
         self.__input_count = 0          #入力回数
         self.__current_chunk_num = 0    #現在入力しているひらがなが何番目か
         self.input = ''                 #入力済みのローマ字の文字列
         self.show_roman = ''            #画面に出力するローマ字
         self.words = words              #文章の一覧
         self.next = None                #次の文章
-        if words is None:
-            self.sentence = self.hurigana = self.divided_roman = None
-        else:
-            for i in list(words.values()):
-                self.__validate_input(i)
-            self.sentence, self.hurigana, self.divided_roman, self.next = self.__create_sentence()    #文章、ふりがな、入力パターン
+        for i in list(self.words.values()):
+            self.__validate_input(i)
+        self.sentence, self.hurigana, self.divided_roman, self.next = self.__create_sentence()    #文章、ふりがな、入力パターン
 
     def __create_sentence(self, words: Dict[str, str] = None) ->Tuple[str, str, List[str]]:
         #引数で文章の辞書が渡されなかったら自分の辞書から

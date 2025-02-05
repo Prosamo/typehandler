@@ -4,7 +4,7 @@ words = dict(リンゴ = 'りんご',バナナ = 'ばなな',ブドウ = 'ぶど
 root = tkinter.Tk()
 game = typehandler.Process(words)
 def key_pressed(event):
-    game.main(event.keysym)
+    game.main(event.char)
     print(f'{game.input}\n{game.sentence}')
 root.bind('<Key>', key_pressed)
 root.mainloop()
