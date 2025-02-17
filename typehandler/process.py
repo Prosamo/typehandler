@@ -227,7 +227,7 @@ class Process:
     __KEY_NAMES = list(__SYMBOL.keys())
     
     #定数
-    MISS, COLLECT, CHUNK_COMPLETE, SENTENCE_COMPLETE = 0, 1, 2, 3
+    MISS, CORRECT, CHUNK_COMPLETE, SENTENCE_COMPLETE = 0, 1, 2, 3
     
     #シフト変換用の辞書
     SHIFT = {'1': '!', '2': '"', '3': '#', '4': '$', '5': '%', '6': '&', '7': "'", '8': '(', '9': ')',
@@ -413,6 +413,6 @@ class Process:
                 else:
                     return Process.CHUNK_COMPLETE
             else:
-                return Process.COLLECT
+                return Process.CORRECT
         else:
             return Process.MISS

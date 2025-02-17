@@ -227,7 +227,7 @@ class Process:
     __KEY_NAMES = list(__SYMBOL.keys())
     
     #定数
-    MISS, COLLECT, CHUNK_COMPLETE, SENTENCE_COMPLETE = 0, 1, 2, 3
+    MISS, CORRECT, CHUNK_COMPLETE, SENTENCE_COMPLETE = 0, 1, 2, 3
     
     #シフト変換用の辞書
     SHIFT = {'1': '!', '2': '"', '3': '#', '4': '$', '5': '%', '6': '&', '7': "'", '8': '(', '9': ')',
@@ -332,12 +332,9 @@ class Process:
         self.show_roman = ''            #画面に出力するローマ字
         self.words = words              #文章の一覧
         self.next = None                #次の文章
-        if words is None:
-            self.sentence = self.hurigana = self.divided_roman = None
-        else:
-            for i in list(words.values()):
-                self.__validate_input(i)
-            self.sentence, self.hurigana, self.divided_roman, self.next = self.__create_sentence()    #文章、ふりがな、入力パターン
+        for i in list(self.words.values()):
+            self.__validate_input(i)
+        self.sentence, self.hurigana, self.divided_roman, self.next = self.__create_sentence()    #文章、ふりがな、入力パターン
 
     def __create_sentence(self, words: Dict[str, str] = None) ->Tuple[str, str, List[str]]:
         #引数で文章の辞書が渡されなかったら自分の辞書から
@@ -416,6 +413,6 @@ class Process:
                 else:
                     return Process.CHUNK_COMPLETE
             else:
-                return Process.COLLECT
+                return Process.CORRECT
         else:
             return Process.MISS

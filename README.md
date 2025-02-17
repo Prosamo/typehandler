@@ -27,7 +27,7 @@ words = {
 }
 
 # Processクラスのインスタンスを作成
-game_process = typehandler.Process(words)
+process = typehandler.Process(words)
 ```
 
 #### 1. 新しい文章の設定
@@ -35,7 +35,7 @@ game_process = typehandler.Process(words)
 新しい文章を設定するには、`set_new_sentence` メソッドを使用します。このメソッドが呼び出されると、辞書からランダムに文章を選び、正誤判定に必要な準備まで行います。このメソッドを呼び出す以外に、文章の更新に必要な手順はありません。文章を打ち終わったときや、制限時間を過ぎたときに呼び出すことを想定しています。
 
 ```python
-game_process.set_new_sentence()
+process.set_new_sentence()
 ```
 通常は引数を受け取らずに使用することを想定しています。しかし、このメソッドは辞書を受け取ることができ、その場合、一度だけその辞書から文章を選びます。このモジュールでは完全ランダム以外に文章を選ぶ機能は実装していない関係で、一部のプロジェクトには使用できない場合があり、それを解決するための機能です。自分で文章を選んだあと、このメソッドに要素が1つの辞書を渡すことで、疑似的に文章を選ぶ機能を入れ替えることができます。
 
@@ -49,7 +49,7 @@ new_words = {
     "ぶどう": "ぶどう",
     "レモン": "れもん"
 }
-game_process.set_new_words(new_words)
+process.set_new_words(new_words)
 ```
 
 #### 3. 入力の判定
@@ -58,7 +58,7 @@ game_process.set_new_words(new_words)
 
 ```python
 key = 'k'
-is_correct = game_process.check_correct_input(key)
+is_correct = process.check_correct_input(key)
 print(is_correct)  # True または False
 ```
 
@@ -66,7 +66,7 @@ print(is_correct)  # True または False
 
 ```python
 key = 'k'
-is_correct = game_process.check_correct_input(key, True)
+is_correct = process.check_correct_input(key, True)
 print(is_correct)  # True または False
 ```
 
@@ -74,7 +74,7 @@ print(is_correct)  # True または False
 #### 4. ひらがなの完了判定
 ひらがなが完了したかどうかを判定するには`check_chunk_completion`メソッドを使用します。`check_correct_input`が`True`を返した後の`if`文の条件に使う事を想定しています。
 ```python
-is_completed = game_process.check_chunk_completion()
+is_completed = process.check_chunk_completion()
 print(is_completed)  #True または False
 ```
 
@@ -83,7 +83,7 @@ print(is_completed)  #True または False
 文章が完了したかどうかを判定するには、`check_sentence_completion` メソッドを使用します。`check_chunk_completion`が`True`を返した後の`if`文の条件に使うことを想定しています。
 
 ```python
-is_completed = game_process.check_sentence_completion()
+is_completed = process.check_sentence_completion()
 print(is_completed)  # True または False
 ```
 
@@ -93,7 +93,7 @@ print(is_completed)  # True または False
 　画面に表示するローマ字を更新するには、`update_show_roman` メソッドを使用します。リアルタイムに反映させるために、ゲームループの中で、適切に更新することが求められます。毎フレーム呼び出すか、入力を検知するたびに呼び出すか、都合の良い方を選んで使ってください。このメソッドは、戻り値に入力パターンの一例を返しますが、必ずしも受け取る必要はありません。
 
 ```python
-show_roman = game_process.update_show_roman()
+show_roman = process.update_show_roman()
 print(show_roman)
 ```
 
@@ -101,16 +101,16 @@ print(show_roman)
 上記の正誤判定から文章の更新までのメソッドを全てまとめた`main`というメソッドを用意してあります。これはキーの名前を受け取り、正誤判定から、文章の更新までの全てを行います。音声などの処理をそれぞれ追加する需要に応えるため、上記のメソッドを用意しています。しかし、音声も何もいらないという人は、これだけを呼び出せば、ゲームシステムは完成します。
 アップデートで0~3のいずれかの数字を返すように機能を追加しました。これによって、mainの結果次第で、処理の追加を行うことができるようになりました。数字か以下のクラス変数名のいずれかを使って判定していただけます。※文章の入力完了時に、辞書を切り替えたりするような場合は、この方法では対応しきれないので、旧バージョンの方法を引き続きご利用ください。
 ```python
-if result == game_process.MISS:                 #ミスタイプ時の処理を追加したい時(== 0)
-if result == game_process.CORRECT:              #正しい入力時の処理を追加したい時(== 1)
-if result == game_process.CHUNK_COMPLETE:       #ひらがなが完了した時の処理を追加したい時(== 2)
-if result == game_process.SENTENCE_COMPLETE:    #文章が完了した時の処理を追加したい時(== 3)
+if result == process.MISS:                 #ミスタイプ時の処理を追加したい時(== 0)
+if result == process.CORRECT:              #正しい入力時の処理を追加したい時(== 1)
+if result == process.CHUNK_COMPLETE:       #ひらがなが完了した時の処理を追加したい時(== 2)
+if result == process.SENTENCE_COMPLETE:    #文章が完了した時の処理を追加したい時(== 3)
 ```
 
 おすすめの使用例
 ```python
 key = 'k'
-result = game_process.main(key)
+result = process.main(key)
 if result:
     #正しい入力時の処理
     if result == 3:
@@ -123,18 +123,18 @@ else:
 
 ```python
 key = 'k'
-game_process.main(key, True)
+process.main(key, True)
 ```
 #### 8. その他のメソッド
 入力として有効なキーの名前の一覧を出力します
 ```python
-game_process.show_key_names()
+process.show_key_names()
 ```
 
 キーの名前を受け取って、シフトが押されている場合のキーの名前を返します。内部で行っている置換の処理もこれなので、キーが正しく入力されているかどうか`print`デバッグで確かめる際に使うと良いと思います。
 ```python
 key = 'k'
-new_key = game_process.shift_filter(key)
+new_key = process.shift_filter(key)
 print(new_key)    #K
 ```
 
@@ -142,24 +142,25 @@ print(new_key)    #K
 
 ```python
 key = 'k'
-if not game_process.check_ignore(key):
-    game_process.main(key)
+if not process.check_ignore(key):
+    process.main(key)
 ```
 
-#### 9.利用可能なインスタンス変数
+#### 9.利用可能なインスタンス変数など
 画面に描画するための文字列など、自由にご使用いただけます。（描画機能自体はこのモジュールには実装していません。）
 ```python
-self.input              #入力済みのローマ字
-self.show_roman         #入力パターンの一例
-self.sentence           #現在の文章
-self.words              #文章のフリガナの辞書
-self.next               #次の文章
+process.input              #入力済みのローマ字
+process.show_roman         #入力パターンの一例
+process.sentence           #現在の文章
+process.words              #文章のフリガナの辞書
+process.next               #次の文章
 ```
 
 #### 10.ローマ字の生成だけ使いたい場合
 メインの使用方法からは逸れますが、ひらがなからローマ字の生成を行う部分だけを使いたい人もいると思うので、`divide`というメソッドを用意しておきました。
 ```python
-game_process.divide('あいうえお')
+roman_list = process.divide('たいぴんぐ')
+print(roman_list)    #[['ta'], ['i', 'yi'], ['pi'], ['ngu', 'nngu', 'xngu']]
 ```
 
 ## サンプルコード
@@ -213,6 +214,8 @@ if __name__ == '__main__':
 
 もう数行増えますが、mainを使わずに、メソッドを組み合わせて処理部分を実装することで、入力時や、ミスタイプを検知した際の処理を自由にカスタマイズすることができます。これにより、音声の実装や、タイピングの結果と連動した、ゲーム画面の処理が行えます。
 
+<details><summary>コードを見る</summary>
+
 ```python
 import pygame, sys
 from typehandler import *
@@ -250,15 +253,16 @@ def main():
                 key_name = event.unicode                  #これを使えばシフト入力も対応できるから楽
                 if process.check_ignore(key_name):    #シフトとかファンクションキーとかは正誤判定しない
                     continue
+                correct_input = process.check_correct_input(key_name)
                 if correct_input:
                     #正しい入力がされた時の処理をここに追加
-                    chunk_completed = self.check_chunk_completion()    #文章の打ち終わりを判定
+                    chunk_completed = process.check_chunk_completion()    #文章の打ち終わりを判定
                     if chunk_completed:
                         #ひらがなが打ち終わったときの処理をここに追加
-                        sentence_completed = self.check_sentence_completion()
+                        sentence_completed = process.check_sentence_completion()
                         if sentence_completed:
                             #文章が打ち終わった時の処理をここに追加
-                            self.sentence, self.hurigana, self.divided_roman = self.__create_sentence()    #新しい文章を用意
+                            process.set_new_sentence()    #新しい文章を用意
                 else:
                     #ミスタイプ時の処理をここに追加
                     pass
@@ -268,6 +272,77 @@ def main():
 if __name__ == '__main__':
     main()
 ```
+
+</details>
+
+v0.4以降は以下の方法も使用できます。
+
+<detalis><summary>コードを見る</summary>
+
+```python
+import pygame, sys
+from typehandler import *
+
+pygame.init()
+screen = pygame.display.set_mode((600, 500))
+pygame.display.set_caption('example')
+clock = pygame.time.Clock()
+font = pygame.font.SysFont('MS Gothic', 32)
+
+words = {'りんご食べたい':'りんごたべたい',
+         'for i in range(0, 10):':'for i in range(0, 10):',
+         '1+1=2':'1+1=2',
+         'print("AはBと言った")':'print("AはBといった")',
+         'I want to eat salmon.':'I want to eat salmon.'}
+
+def main():
+    process = Process(words)
+    
+    #追加の処理をするための関数内関数を定義
+    def add_process(result):
+        if result >= process.CORRECT:
+            #正しい入力が行われた時の処理を追加
+            
+            if result >= process.CHUNK_COMPLETE:
+                #一文字打ち終わった時の処理を追加
+                
+                if result >= process.SENTENCE_COMPLETE:
+                    #文章が打ち終わった時の処理を追加
+                    pass
+        else:
+            #誤った入力が行われた時の処理を追加
+            screen.fill((255, 0, 0))
+            
+    while True:
+        process.update_show_roman()    #これ必須
+        screen.fill((255, 255, 255))
+        text_roman = font.render(process.show_roman, True, (192, 192, 192))    #入力例
+        text_input = font.render(process.input, True, (0, 0, 0))               #現在の入力
+        text_sentence = font.render(process.sentence, True, (0, 0, 0))         #お題の文章
+        text_next = font.render('next=>'+process.next, True, (192, 192, 192))  #次の文章
+        pygame.draw.line(screen, (0, 128, 255), (0, 50), (600, 50), 5)         #青い線を描画
+        pygame.draw.line(screen, (255, 128, 0), (0, 150), (600, 150), 5)       #オレンジの線を描画
+        screen.blit(text_roman, (30,60))
+        screen.blit(text_input, (30,60))
+        screen.blit(text_sentence, (30, 100))
+        screen.blit(text_next, (180, 150))
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                key_name = event.unicode                  #これを使えばシフト入力も対応できるから楽
+                if not process.check_ignore(key_name):    #シフトとかファンクションキーとかは正誤判定しない
+                    result = process.main(key_name)                #この一文で正誤判定から文章の切り替えまで全部やってくれる！
+                    add_process(result)
+        pygame.display.update()
+        clock.tick(50)    #fpsは50くらいがおすすめ
+
+if __name__ == '__main__':
+    main()
+```
+
+<detalis>
 
 ## ライセンス
 
